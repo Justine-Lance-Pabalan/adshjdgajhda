@@ -148,101 +148,98 @@ def section3():
         st.markdown('<p style="color: #2E8B57; text-align: left; font-weight:bold; font-family: "Poppins", sans-serif;">The emission factor for transportation is 1.25 kgCO2/meal. </p><p style="text-align: left;">Our dietary habits have a significant impact on our carbon footprint due to the energy-intensive nature of food production and distribution. By multiplying this factor by our yearly meal consumption, we can assess the environmental impact of our dietary choices.</p> ', unsafe_allow_html=True)
     st.divider()
 
-def section4():
-    # Emission factors
-    EMISSION_FACTORS = {
-        "Philippines": {
-            "Transportation": 0.14,  # kgCO2/km
-            "Electricity": 0.82,     # kgCO2/kWh
-            "Diet": 1.25,            # kgCO2/meal
-            "Waste": 0.1             # kgCO2/kg
-        }
-    }
+def get_recommendation(category, total):
+    if category == 'household':
+        if total < 50:
+            return "Great job! Your household carbon footprint is very low."
+        elif total < 150:
+            return "Your household footprint is moderate. Consider saving energy and reducing waste."
+        else:
+            return "Your household footprint is high. Try switching to energy-efficient appliances and limiting water use."
+    
+    elif category == 'transportation':
+        if total < 100:
+            return "You're doing well with transportation emissions!"
+        elif total < 300:
+            return "Your transportation emissions are moderate. Try carpooling or using public transport more."
+        else:
+            return "Your transportation emissions are high. Consider reducing vehicle use or switching to greener options."
+    
+    elif category == 'food':
+        if total < 300:
+            return "Excellent! Your diet has a low environmental impact."
+        elif total < 800:
+            return "Your food emissions are average. Try reducing meat and dairy consumption."
+        else:
+            return "High food emissions. Consider more plant-based meals and reducing food waste."
+    
+    elif category == 'full':
+        if total < 500:
+            return "Fantastic! Your total carbon footprint is impressively low."
+        elif total < 1500:
+            return "Your overall emissions are average. Keep looking for ways to reduce further."
+        else:
+            return "Your overall emissions are high. A shift toward sustainable habits could make a big difference."
 
-    st.subheader("🌍 Your Country:")
-    country = st.selectbox("Select", ["Philippines"])
-    ef = EMISSION_FACTORS[country]
+    return "No recommendation available."
+
+
+def section4():
+    st.subheader("🌍 Carbon Footprint Calculator (Basic)")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("💡Monthly electricity consumed (in kWh)")
-        st.markdown("Please input your monthly electricity consumption in kWh.")
-        monthly_electricity = st.slider("Electricity", 0.0, 500.0, key="electricity_input")
+        st.subheader("💡 Monthly Electricity Consumption (kWh)")
+        electricity = st.slider("Electricity", 0.0, 1000.0, 100.0)
 
-        st.subheader("🚗 Daily commute distance (in km)")
-        st.markdown("Please input your average daily travel distance in km.")
-        daily_distance = st.slider("Distance", 0.0, 100.0, key="distance_input")
+        st.subheader("🚗 Daily Commute Distance (km)")
+        commute_km = st.slider("Commute", 0.0, 100.0, 10.0)
 
     with col2:
-        st.subheader("🗑️ Waste generated per week (in kg)")
-        st.markdown("Please input your weekly household waste generation.")
-        weekly_waste = st.slider("Waste", 0.0, 100.0, key="waste_input")
+        st.subheader("🗑️ Weekly Waste Produced (kg)")
+        waste = st.slider("Waste", 0.0, 50.0, 5.0)
 
-        st.subheader("🍽️ Number of meals per day")
-        st.markdown("Please input your daily meal count.")
-        daily_meals = st.number_input("Meals", 0, key="meals_input")
+        st.subheader("🍽️ Number of Meals Per Day")
+        meals_per_day = st.number_input("Meals", min_value=0, value=3)
 
-    # Convert to yearly totals
-    annual_electricity = monthly_electricity * 12
-    annual_distance = daily_distance * 365
-    annual_waste = weekly_waste * 52
-    annual_meals = daily_meals * 365
+    # --- Multipliers based on your backend logic ---
+    multipliers = {
+        'electricity': 0.0498,
+        'transportation': 0.14,  # approximate kgCO2/km
+        'waste': 1.59,
+        'food': 1.25  # approx kgCO2 per meal
+    }
 
-    # Calculate emissions
-    transport_emission = annual_distance * ef["Transportation"]
-    electricity_emission = annual_electricity * ef["Electricity"]
-    waste_emission = annual_waste * ef["Waste"]
-    diet_emission = annual_meals * ef["Diet"]
+    # --- Calculations (converted to annual) ---
+    annual_electricity = electricity * 12  # kWh/year
+    annual_commute = commute_km * 365  # km/year
+    annual_waste = waste * 52  # kg/year
+    annual_meals = meals_per_day * 365  # meals/year
 
-    total_emission = transport_emission + electricity_emission + waste_emission + diet_emission
+    electricity_emission = annual_electricity * multipliers['electricity']
+    transport_emission = annual_commute * multipliers['transportation']
+    waste_emission = annual_waste * multipliers['waste']
+    food_emission = annual_meals * multipliers['food']
 
-    # Display results
-    st.markdown("### 🧾 Estimated Annual Carbon Footprint (in kgCO₂):")
-    st.success(f"🚗 Transportation: **{transport_emission:.2f} kgCO₂**")
-    st.success(f"💡 Electricity: **{electricity_emission:.2f} kgCO₂**")
-    st.success(f"🗑️ Waste: **{waste_emission:.2f} kgCO₂**")
-    st.success(f"🍽️ Food: **{diet_emission:.2f} kgCO₂**")
+    total_emission = electricity_emission + transport_emission + waste_emission + food_emission
+
+    # --- Display Results ---
+    st.markdown("### 🧾 Estimated Annual Carbon Footprint (in kg CO₂):")
+    st.success(f"💡 Electricity: **{electricity_emission:.2f} kg CO₂**")
+    st.success(f"🚗 Transportation: **{transport_emission:.2f} kg CO₂**")
+    st.success(f"🗑️ Waste: **{waste_emission:.2f} kg CO₂**")
+    st.success(f"🍽️ Food: **{food_emission:.2f} kg CO₂**")
+
     st.markdown("----")
-    st.markdown(f"### 🌱 Your Total Estimated Annual Carbon Footprint is **{total_emission:.2f} kgCO₂**")
+    st.markdown(f"### 🌱 **Total Estimated Annual Footprint: {total_emission:.2f} kg CO₂**")
 
-    # Recommendations
     st.header("📋 Personalized Recommendations")
-
-    # Transportation
-    if transport_emission > 3000:
-        st.warning("🚗 Your transportation emissions are high. Consider public transit, biking, or carpooling.")
-    elif transport_emission > 1000:
-        st.info("🚲 Moderate emissions. Explore more eco-friendly travel options.")
-    else:
-        st.success("✅ Low transport emissions. Great job!")
-
-    # Electricity
-    if electricity_emission > 4000:
-        st.warning("💡 High electricity usage. Consider energy-saving practices and solar alternatives.")
-    elif electricity_emission > 1500:
-        st.info("🔌 Moderate usage. Optimize with efficient appliances.")
-    else:
-        st.success("✅ Efficient electricity use!")
-
-    # Waste
-    if waste_emission > 500:
-        st.warning("🗑️ Consider reducing, reusing, and recycling more.")
-    elif waste_emission > 200:
-        st.info("♻️ Moderate waste. Look for ways to compost or recycle better.")
-    else:
-        st.success("✅ Low waste generation!")
-
-    # Food
-    if diet_emission > 3000:
-        st.warning("🍖 Consider reducing red meat and processed food consumption.")
-    elif diet_emission > 1500:
-        st.info("🥗 Try increasing plant-based meals.")
-    else:
-        st.success("✅ Great dietary habits!")
-
+    st.info(get_recommendation('household', electricity_emission + waste_emission))
+    st.info(get_recommendation('transportation', transport_emission))
+    st.info(get_recommendation('food', food_emission))
     st.markdown("---")
-    st.markdown("🌍 **Every step matters. Thank you for being eco-conscious!**")
+    st.info(get_recommendation('full', total_emission))
 
 def button():
     st.markdown('<a href="#section4"><button style="background-color: #097969; border: none; color: white; padding: 10px 20px; text-align: center; font-size: 16px; border-radius: 5px; cursor: pointer; font-family: Poppins;">Try the Carbon Calculator</button></a>', unsafe_allow_html=True)
